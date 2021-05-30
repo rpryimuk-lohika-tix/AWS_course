@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Network: VPC, Subnets + RouteTables, Internet + NAT Gateways"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "Network Configuration"
+        Parameters:
+          - Environment
+
+Parameters:
+  Environment:
+    Type: String
+    Default: "Lohika_course"
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailibilityZone: us-west-2
+      ImageId: ami-a4c7eb2
+      InstanceType: t2.micro
+      Tags:
+        - Key: Name
+          Value: !Ref Environment
+
+Outputs:
+  VPC:
+    Description: ID for the VPC
+    Value: "Success"
+    Export:
+      Name: !Join [ "-", [ !Ref "Environment" ] ]
+
+# aws cloudformation create-stack --stack-name myteststack --template-body file://myTempl.yaml --parameters ParameterKey=Environment,ParameterValue=Lohinser
+# aws cloudformation delete-stack --stack-name Lohinser
