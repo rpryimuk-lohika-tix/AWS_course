@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.192.0.0/16
+  myLaunchTemplateVersionNumber:
+    Type: String
+    Default: "Lohika_course"
+  Subnets:
+    # Type: CommaDelimitedList
+    Type : List<AWS::EC2::Subnet::Id>
+    Description : "The list of SubnetIds in your Virtual Private Cloud (VPC)"
+    ConstraintDescription : "must be a list of at least two existing subnets associated with at least two different availability zones. They should be residing in the selected Virtual Private Cloud."
+    Default: 10.0.48.0/24
+Resources:
+  myLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        CreditSpecification:
+          CpuCredits: Unlimited
+        ImageId: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+        InstanceType: t2.micro
+      UserData:
+        Fn::Base64:
+          #!/bin/bash
+          sudo yum -y update
+          sudo yum -y install java-1.8.0-openjdk
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref myLaunchTemplateVersionNumber
+  SSHSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+  myASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MinSize: '2'
+      MaxSize: '2'
+      DesiredCapacity: '2'
+      LaunchTemplate:
+        LaunchTemplateId: !Ref myLaunchTemplate
+        Version: !Ref myLaunchTemplateVersionNumber
+      VPCZoneIdentifier: !Ref Subnets
+
+# aws cloudformation create-stack --stack-name myteststack1 --template-body file://Homework2.yaml --parameters ParameterKey=VpcCIDR,ParameterValue=10.192.0.0/16 ParameterKey=myLaunchTemplateVersionNumber,ParameterValue=Lohinser ParameterKey=Subnets,ParameterValue=10.0.48.0/24
+# aws cloudformation delete-stack --stack-name Lohinser
+# aws cloudformation delete-stack --stack-name myteststack1
