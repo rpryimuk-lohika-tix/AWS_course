@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "Network: VPC, Subnets + RouteTables, Internet + NAT Gateways"
+Description: "Single EC2 instance"
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -27,11 +27,10 @@ Resources:
           Value: !Ref Environment
 
 Outputs:
-  VPC:
-    Description: ID for the VPC
-    Value: "Success"
-    Export:
-      Name: !Join [ "-", [ !Ref "Environment" ] ]
+  PublicIp:
+    Description: EC2 Instance public IP
+    Value: !GetAtt EC2Instance.PublicIp
 
-# aws cloudformation create-stack --stack-name myteststack --template-body file://myTempl.yaml --parameters ParameterKey=Environment,ParameterValue=Lohinser
+# aws cloudformation create-stack --stack-name myteststack --template-body file://HomeWork1.yaml --parameters ParameterKey=Environment,ParameterValue=Lohinser
 # aws cloudformation delete-stack --stack-name Lohinser
+# aws cloudformation delete-stack --stack-name myteststack
