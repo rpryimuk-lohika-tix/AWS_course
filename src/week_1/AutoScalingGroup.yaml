@@ -1,18 +1,24 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
-  VpcCIDR:
-    Description: Please enter the IP range (CIDR notation) for this VPC
-    Type: String
-    Default: 10.192.0.0/16
   myLaunchTemplateVersionNumber:
     Type: String
     Default: "Lohika_course"
-  Subnets:
-    # Type: CommaDelimitedList
-    Type : List<AWS::EC2::Subnet::Id>
-    Description : "The list of SubnetIds in your Virtual Private Cloud (VPC)"
-    ConstraintDescription : "must be a list of at least two existing subnets associated with at least two different availability zones. They should be residing in the selected Virtual Private Cloud."
-    Default: 10.0.48.0/24
+  instanceTypeParameter:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - m1.small
+      - m1.large
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+  myKeyPair:
+    Description: Amazon EC2 Key Pair
+    Type: "AWS::EC2::KeyPair::KeyName"
+    Default: 12345
+  imageId:
+    Description: Amazon EC2 image ID
+    Type: String
+    Default: ami-7a11e213
 Resources:
   myLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -20,32 +26,31 @@ Resources:
       LaunchTemplateData:
         CreditSpecification:
           CpuCredits: Unlimited
-        ImageId: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
-        InstanceType: t2.micro
+        ImageId: !Ref imageId
+        InstanceType: !Ref instanceTypeParameter
       UserData:
         Fn::Base64:
           #!/bin/bash
           sudo yum -y update
           sudo yum -y install java-1.8.0-openjdk
-  VPC:
-    Type: AWS::EC2::VPC
+  Ec2Instance:
+    Type: 'AWS::EC2::Instance'
     Properties:
-      CidrBlock: !Ref VpcCIDR
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      Tags:
-        - Key: Name
-          Value: !Ref myLaunchTemplateVersionNumber
+      KeyName: !Ref myKeyPair
+      ImageId: !Ref imageId
   SSHSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !Ref VPC
-      GroupDescription: Enable SSH access via port 22
+      GroupDescription: "Enable HTTP access via port 80 locked down to the load balancer + SSH access"
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
-          FromPort: 22
+          FromPort: '80'
           IpProtocol: tcp
-          ToPort: 22
+          ToPort: '80'
+        - CidrIp: 0.0.0.0/0
+          FromPort: '22'
+          IpProtocol: tcp
+          ToPort: '22'
   myASG:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
@@ -55,8 +60,9 @@ Resources:
       LaunchTemplate:
         LaunchTemplateId: !Ref myLaunchTemplate
         Version: !Ref myLaunchTemplateVersionNumber
-      VPCZoneIdentifier: !Ref Subnets
+      AvailabilityZone:
+        Fn::GetAZs: us-west-2
 
-# aws cloudformation create-stack --stack-name myteststack1 --template-body file://Homework2.yaml --parameters ParameterKey=VpcCIDR,ParameterValue=10.192.0.0/16 ParameterKey=myLaunchTemplateVersionNumber,ParameterValue=Lohinser ParameterKey=Subnets,ParameterValue=10.0.48.0/24
+# aws cloudformation create-stack --stack-name myteststack1 --template-body file://Homework2.yaml --parameters ParameterKey=myLaunchTemplateVersionNumber,ParameterValue=Lohinser ParameterKey=instanceTypeParameter,ParameterValue=t2.micro ParameterKey=myKeyPair,ParameterValue=12345 ParameterKey=imageId,ParameterValue=ami-7a11e213
 # aws cloudformation delete-stack --stack-name Lohinser
 # aws cloudformation delete-stack --stack-name myteststack1
