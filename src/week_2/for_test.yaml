@@ -1,0 +1,83 @@
+Parameters:
+  s3BucketName:
+    Type: String
+    Default: "my_first_bucket"
+  instanceTypeParameter:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - m1.small
+      - m1.large
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+  imageId:
+    Description: Amazon EC2 image ID
+    Type: String
+    Default: ami-0cf6f5c8a62fa5da6
+  myKeyPair:
+    Description: Amazon EC2 Key Pair
+    Type: "AWS::EC2::KeyPair::KeyName"
+    Default: 12345
+
+Resources:
+  Test:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref imageId
+      InstanceType: !Ref instanceTypeParameter
+      KeyName: !Ref myKeyPair
+      IamInstanceProfile:
+        Ref: ListS3BucketsInstanceProfile
+      SecurityGroupIds:
+        - !Ref WebServerSecurityGroup
+      UserData:
+        Fn::Base64:
+          #!/bin/bash
+          get-object --bucket qwerasdfzxcv1234qwer
+  ListS3BucketsInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - Ref: ListS3BucketsRole
+  ListS3BucketsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ListS3BucketsPolicy
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:List*
+            Resource: "*"
+      Roles:
+        - Ref: ListS3BucketsRole
+  ListS3BucketsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+  WebServerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable HTTP access via port 80
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+
+# aws cloudformation create-stack --stack-name myteststack1 --template-body file://hw3_cloudformation.yaml --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=myKeyPair,ParameterValue=new_key
+# aws cloudformation delete-stack --stack-name myteststack1
