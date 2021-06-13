@@ -1,9 +1,3 @@
-variable "instance_name" {
-  description = "Value of the Name tag for the EC2 instance"
-  type        = string
-  default     = "ExampleAppServerInstance"
-}
-
 terraform {
   required_providers {
     aws = {
@@ -24,26 +18,62 @@ variable "name_s3_bucket" {
   default = "qwerasdf1234"
 }
 
-resource "aws_s3_bucket" "qwerqwer12341234" {
-  bucket = "qwerasdf1234"
-  acl    = "private"
+resource "aws_s3_bucket" "ddve6" {
+  bucket = "js-ddve6-bucket"
 
   versioning {
     enabled = true
   }
 }
 
-resource "aws_instance" "qweradsf1234" {
-  ami = "ami-830c94e3"
+resource "aws_instance" "terraform_ddve" {
+  ami           = "ami-830c94e3"
   instance_type = "t2.micro"
+
+  # key name
+  key_name = "new_key"
+
+  # Security group assign to instance
+  vpc_security_group_ids = [aws_security_group.allow_tls.id]
+
+  # tighten things up
+  iam_instance_profile = aws_iam_instance_profile.js_ddve_profile.name
+
   user_data = <<-EOT
     aws s3api get-object --bucket qwerasdfzxcv1234qwer --if-match SampleTextFile.txt
   EOT
 }
 
-resource "aws_network_interface_sg_attachment" "sg_attachment" {
-  security_group_id    = aws_security_group.allow_tls.id
-  network_interface_id = aws_instance.qweradsf1234.primary_network_interface_id
+resource "aws_iam_policy" "js_iam_policy_ddve6_s3" {
+  name        = "js_ddve6_iam_policy"
+  path        = "/"
+  description = "My test policy"
+
+  policy = file("policy_scr.json")
+  # I do need to have a s3 storage created first
+  depends_on = [aws_s3_bucket.ddve6]
+}
+
+resource "aws_iam_role_policy_attachment" "assign-policy-to-role-attach" {
+  role       = aws_iam_role.js_ec2_s3_access_iam_role.name
+  policy_arn = aws_iam_policy.js_iam_policy_ddve6_s3.arn
+
+  depends_on = [aws_iam_policy.js_iam_policy_ddve6_s3]
+}
+
+resource "aws_iam_instance_profile" "js_ddve_profile" {
+
+  name = "jd_ddve_profile"
+  role = aws_iam_role.js_ec2_s3_access_iam_role.name
+
+  provisioner "local-exec" {
+    command = "sleep 20"
+  }
+}
+
+resource "aws_iam_role" "js_ec2_s3_access_iam_role" {
+  name               = "js_ddve6_iam_role"
+  assume_role_policy = file("jsrolepolicy.json")
 }
 
 resource "aws_security_group" "allow_tls" {
@@ -65,5 +95,10 @@ resource "aws_security_group" "allow_tls" {
 }
 
 output "ec2_instance_id" {
-    value = aws_instance.qweradsf1234.id
+  value = aws_instance.terraform_ddve.id
+}
+
+output "S3_bucket_name" {
+  value       = aws_s3_bucket.ddve6.bucket
+  description = "The value you do need for DDVE configuration on the bucket name!"
 }

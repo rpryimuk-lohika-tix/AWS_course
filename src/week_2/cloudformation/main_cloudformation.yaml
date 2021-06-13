@@ -43,7 +43,7 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - s3:List*
+              - s3:GetObject*
             Resource: "*"
       Roles:
         - Ref: ListS3BucketsRole
