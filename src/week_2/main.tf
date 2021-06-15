@@ -21,18 +21,13 @@ variable "name_s3_bucket" {
 resource "aws_instance" "terraform_ddve" {
   ami           = "ami-830c94e3"
   instance_type = "t2.micro"
-
-  # key name
   key_name = "new_key"
-
-  # Security group assign to instance
   vpc_security_group_ids = [aws_security_group.allow_tls.id]
 
-  # tighten things up
   iam_instance_profile = aws_iam_instance_profile.js_ddve_profile.name
 
   user_data = <<-EOT
-    aws s3api get-object --bucket qwerasdfzxcv1234qwer --if-match SampleTextFile.txt
+    aws s3api get-object --bucket qwerasdfzxcv1234qwerwq --if-match SampleTextFile.txt
   EOT
 }
 
@@ -47,7 +42,6 @@ resource "aws_iam_policy" "js_iam_policy_ddve6_s3" {
 resource "aws_iam_role_policy_attachment" "assign-policy-to-role-attach" {
   role       = aws_iam_role.js_ec2_s3_access_iam_role.name
   policy_arn = aws_iam_policy.js_iam_policy_ddve6_s3.arn
-
   depends_on = [aws_iam_policy.js_iam_policy_ddve6_s3]
 }
 

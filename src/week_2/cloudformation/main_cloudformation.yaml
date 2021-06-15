@@ -74,5 +74,5 @@ Resources:
           ToPort: '22'
           CidrIp: 0.0.0.0/0
 
-# aws cloudformation create-stack --stack-name my_stack --template-body file://main_cloudformation.yaml --capabilities CAPABILITY_NAMED_IAM
-# aws cloudformation delete-stack --stack-name my_stack
+# aws cloudformation create-stack --stack-name mystack --template-body file://main_cloudformation.yaml --capabilities CAPABILITY_NAMED_IAM
+# aws cloudformation delete-stack --stack-name mystack
