@@ -19,15 +19,14 @@ variable "name_s3_bucket" {
 }
 
 resource "aws_instance" "terraform_ddve" {
-  ami           = "ami-830c94e3"
+  ami           = "ami-0800fc0fa715fdcfe"
   instance_type = "t2.micro"
-  key_name = "new_key"
-  vpc_security_group_ids = [aws_security_group.allow_tls.id]
-
+  key_name = "test"
+  security_groups = [aws_security_group.allow_tls.name]
   iam_instance_profile = aws_iam_instance_profile.js_ddve_profile.name
 
   user_data = <<-EOT
-    aws s3api get-object --bucket qwerasdfzxcv1234qwerwq --if-match SampleTextFile.txt
+    aws s3api get-object --bucket qwerasdfzxcv1234qwerwq --key SampleTextFile.txt SampleTextFile.txt
   EOT
 }
 
