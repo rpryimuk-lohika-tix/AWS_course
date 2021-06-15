@@ -18,14 +18,6 @@ variable "name_s3_bucket" {
   default = "qwerasdf1234"
 }
 
-resource "aws_s3_bucket" "ddve6" {
-  bucket = "js-ddve6-bucket"
-
-  versioning {
-    enabled = true
-  }
-}
-
 resource "aws_instance" "terraform_ddve" {
   ami           = "ami-830c94e3"
   instance_type = "t2.micro"
@@ -50,8 +42,6 @@ resource "aws_iam_policy" "js_iam_policy_ddve6_s3" {
   description = "My test policy"
 
   policy = file("policy_scr.json")
-  # I do need to have a s3 storage created first
-  depends_on = [aws_s3_bucket.ddve6]
 }
 
 resource "aws_iam_role_policy_attachment" "assign-policy-to-role-attach" {
@@ -96,9 +86,4 @@ resource "aws_security_group" "allow_tls" {
 
 output "ec2_instance_id" {
   value = aws_instance.terraform_ddve.id
-}
-
-output "S3_bucket_name" {
-  value       = aws_s3_bucket.ddve6.bucket
-  description = "The value you do need for DDVE configuration on the bucket name!"
 }
