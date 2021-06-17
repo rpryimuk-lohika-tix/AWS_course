@@ -25,9 +25,7 @@ resource "aws_instance" "terraform_ddve" {
   security_groups = [aws_security_group.allow_tls.name]
   iam_instance_profile = aws_iam_instance_profile.js_ddve_profile.name
 
-  user_data = <<-EOT
-    aws s3api get-object --bucket qwerasdfzxcv1234qwerwq --key SampleTextFile.txt SampleTextFile.txt
-  EOT
+  user_data = filebase64("copy_file_from_s3.sh")
 }
 
 resource "aws_iam_policy" "js_iam_policy_ddve6_s3" {
@@ -74,6 +72,13 @@ resource "aws_security_group" "allow_tls" {
     to_port          = 22
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
   }
 }
 
