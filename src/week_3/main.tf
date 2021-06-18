@@ -59,33 +59,59 @@ resource "aws_instance" "terraform_ddve" {
   security_groups = [aws_security_group.allow_tcp.name]
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
 
-  user_data = templatefile("copy_file_from_s3.tpl", {s3_bucket_name = var.name_s3_bucket})
+  user_data = filebase64("copy_file_from_s3.sh")
 }
 
 //Permitions----------------
 
 resource "aws_iam_instance_profile" "instance_profile" {
-
   name = "instance_profile"
-  role = aws_iam_role.iam_role.name
-
-  provisioner "local-exec" {
-    command = "sleep 20"
-  }
+  role = aws_iam_role.iam-role.name
 }
 
-resource "aws_iam_role" "iam_role" {
-  name               = "iam_role"
-  assume_role_policy = templatefile("policy_for_iam_role.tpl", {s3_bucket_name = var.name_s3_bucket})
+resource "aws_iam_role" "iam-role" {
+  name = "iam-role"
+  assume_role_policy = <<EOF
+{
+ "Version": "2012-10-17",
+ "Statement": [
+ {
+ "Action": "sts:AssumeRole",
+ "Principal": {
+ "Service": "ec2.amazonaws.com"
+ },
+ "Effect": "Allow",
+ "Sid": ""
+ }
+ ]
+}
+ EOF
 }
 
-resource "aws_iam_policy" "policy" {
-  name        = "test_policy"
-  path        = "/"
-  description = "My test policy"
-
-  policy = templatefile("policy_for_iam_policy.tpl", {s3_bucket_name = var.name_s3_bucket})
+resource "aws_iam_role_policy" "s3_dynamodb_policy" {
+  name = "s3_dynamodb_policy"
+  role = aws_iam_role.iam-role.id
+  policy = <<EOF
+{
+ "Version": "2012-10-17",
+ "Statement": [
+ {
+ "Effect": "Allow",
+ "Action": "s3:*",
+ "Resource": "*"
+ },
+ {
+ "Action": [
+ "dynamoDb:*"
+ ],
+ "Effect": "Allow",
+ "Resource": "*"
+ }
+ ]
 }
+ EOF
+}
+
 
 //---------------------------
 
