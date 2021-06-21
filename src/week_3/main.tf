@@ -19,27 +19,28 @@ variable "name_s3_bucket" {
   description = "Name s3 bucket"
 }
 
-//resource "aws_dynamodb_table" "Tree" {
-//  name             = "Tree"
-//  hash_key         = "TestTableHashKey"
-//  billing_mode     = "PAY_PER_REQUEST"
-//  stream_enabled   = true
-//  stream_view_type = "NEW_AND_OLD_IMAGES"
-//
-//  attribute {
-//    name = "treeId"
-//    type = "N"
-//  }
-//
-//  attribute {
-//    name = "treeName"
-//    type = "S"
-//  }
-//
-//  replica {
-//    region_name = "us-west-2"
-//  }
-//}
+resource "aws_dynamodb_table" "Tree" {
+  name             = "Tree"
+  hash_key         = "treeId"
+  range_key      = "treeName"
+  billing_mode     = "PAY_PER_REQUEST"
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+
+  attribute {
+    name = "treeId"
+    type = "N"
+  }
+
+  attribute {
+    name = "treeName"
+    type = "S"
+  }
+
+  replica {
+    region_name = "us-west-2"
+  }
+}
 
 //resource "aws_rds_cluster" "postgresql" {
 //  cluster_identifier      = "aurora-cluster-demo"
@@ -52,7 +53,7 @@ variable "name_s3_bucket" {
 //  preferred_backup_window = "07:00-09:00"
 //}
 
-resource "aws_instance" "terraform_ddve" {
+resource "aws_instance" "ec2-instance" {
   ami           = "ami-0800fc0fa715fdcfe"
   instance_type = "t2.micro"
   key_name = "new_key"
